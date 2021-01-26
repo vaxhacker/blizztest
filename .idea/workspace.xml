@@ -57,22 +57,22 @@
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
     <state x="1049" y="322" key="#com.intellij.fileTypes.FileTypeChooser/0.0.2560.1040@0.0.2560.1040" timestamp="1611639494687" />
-    <state width="2517" height="83" key="GridCell.Tab.0.bottom" timestamp="1611640447612">
+    <state width="2517" height="227" key="GridCell.Tab.0.bottom" timestamp="1611642701886">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
-    <state width="2517" height="83" key="GridCell.Tab.0.bottom/0.0.2560.1040@0.0.2560.1040" timestamp="1611640447612" />
-    <state width="2517" height="83" key="GridCell.Tab.0.center" timestamp="1611640447612">
+    <state width="2517" height="227" key="GridCell.Tab.0.bottom/0.0.2560.1040@0.0.2560.1040" timestamp="1611642701886" />
+    <state width="2517" height="227" key="GridCell.Tab.0.center" timestamp="1611642701886">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
-    <state width="2517" height="83" key="GridCell.Tab.0.center/0.0.2560.1040@0.0.2560.1040" timestamp="1611640447612" />
-    <state width="2517" height="83" key="GridCell.Tab.0.left" timestamp="1611640447612">
+    <state width="2517" height="227" key="GridCell.Tab.0.center/0.0.2560.1040@0.0.2560.1040" timestamp="1611642701886" />
+    <state width="2517" height="227" key="GridCell.Tab.0.left" timestamp="1611642701886">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
-    <state width="2517" height="83" key="GridCell.Tab.0.left/0.0.2560.1040@0.0.2560.1040" timestamp="1611640447612" />
-    <state width="2517" height="83" key="GridCell.Tab.0.right" timestamp="1611640447612">
+    <state width="2517" height="227" key="GridCell.Tab.0.left/0.0.2560.1040@0.0.2560.1040" timestamp="1611642701886" />
+    <state width="2517" height="227" key="GridCell.Tab.0.right" timestamp="1611642701886">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
-    <state width="2517" height="83" key="GridCell.Tab.0.right/0.0.2560.1040@0.0.2560.1040" timestamp="1611640447612" />
+    <state width="2517" height="227" key="GridCell.Tab.0.right/0.0.2560.1040@0.0.2560.1040" timestamp="1611642701886" />
     <state width="2517" height="347" key="GridCell.Tab.1.bottom" timestamp="1611633479426">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
@@ -93,9 +93,9 @@
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
     <state x="832" y="249" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/0.0.2560.1040@0.0.2560.1040" timestamp="1611631894866" />
-    <state x="632" y="229" key="search.everywhere.popup" timestamp="1611633353201">
+    <state x="632" y="229" width="672" height="678" key="search.everywhere.popup" timestamp="1611641335709">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
-    <state x="632" y="229" key="search.everywhere.popup/0.0.2560.1040@0.0.2560.1040" timestamp="1611633353201" />
+    <state x="632" y="229" width="672" height="678" key="search.everywhere.popup/0.0.2560.1040@0.0.2560.1040" timestamp="1611641335709" />
   </component>
 </project>

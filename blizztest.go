@@ -3,12 +3,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 )
 
+const secretFile = "blizz-secret.json"
 const urlOauth = "https://us.battle.net/oauth/token"
 const urlSearch = "https://us.api.blizzard.com/hearthstone/cards/?locale=en-US?mana=%d&class=%s"
 
@@ -38,8 +40,8 @@ type ClientAuth struct {
 	Bearer	BearerData
 }
 
-func (auth ClientAuth) FromFile(secretfile string) {
-	filed, err := ioutil.ReadFile(secretfile)
+func (auth ClientAuth) FromWhatever() {
+	filed, err := ioutil.ReadFile(secretFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,8 +62,31 @@ func (card *HearthCard) PrettyPrint() string {
 	return bufout.String()
 }
 
+func (db HearthCards) New() {
+	var auth ClientAuth
+	auth.FromWhatever()
+	auth.Login()
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", urlSearch, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Add(auth.BearerHeader())
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	cardDb.NewFromBytes(body)
+	return cardDb
+}
 /* new stack o cards from a response body */
-func (cards *HearthCards) New(body []byte) {
+func (cards *HearthCards) NewFromBytes(body []byte) {
 	err := json.Unmarshal(body, &cards)
 	if err != nil {
 		log.Fatal(err)
@@ -113,46 +138,27 @@ func (auth *ClientAuth) Login() {
 	if err != nil {
 		log.Fatalf("unable to parse value: %q, error: %s", string(body), err.Error())
 	}
-	auth.Bearer = bearer_ticket
+	auth.Bearer = bearer
 
 	defer resp.Body.Close()
-}
-
-func GetCards() (cardDb HearthCards) {
-    auth.Login()
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", cardsurl, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	req.Header.Add(auth.BearerHeader())
-    resp, err := client.Do(req)
-    if err != nil {
-    	log.Fatal(err)
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
- 	cardDb.New(body)
-	return cardDb
 }
 
 /* test handler for our webapp good for lb health */
-func testWebHandler(writer http.ResponseWriter, r *http.Request) {
+func testWebHandler(writer http.ResponseWriter, req *http.Request) {
 }
 
-func cardsWebHandler(writer http.ResponseWriter, r *http.Request) {
+func cardsWebHandler(writer http.ResponseWriter, req *http.Request) {
 }
 
-func indexWebHandler(writer http.ResponseWriter, r *http.Request) {
+func indexWebHandler(writer http.ResponseWriter, req *http.Request) {
+	tmpl := template.Must(template.ParseFiles("public_html/index.html"))
+	tmpl.Execute(writer, nil)
 }
 
 func main() {
 	http.HandleFunc("/test", testWebHandler)
 	http.HandleFunc("/cards.json", cardsWebHandler)
-	http.HandleFunc("/index.html", indexWebHandler)
+	http.HandleFunc("/hearthstone.html", indexWebHandler)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
