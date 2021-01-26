@@ -1,4 +1,5 @@
 package main
+
 import (
 	"bytes"
 	"encoding/json"
@@ -12,7 +13,8 @@ import (
 
 const secretFile = "blizz-secret.json"
 const urlOauth = "https://us.battle.net/oauth/token"
-const urlSearch = "https://us.api.blizzard.com/hearthstone/cards/?locale=en-US?mana=%d&class=%s"
+//const urlSearch = "https://us.api.blizzard.com/hearthstone/cards/?locale=en-US?mana=%d&class=%s"
+const urlSearch = "https://us.api.blizzard.com/hearthstone/cards/?locale=en-US?class=warlock"
 
 type HearthCard struct {
 	Id 			int	`json:"id"`
@@ -34,71 +36,44 @@ type BearerData struct {
 	ExpiresIn   int    `json:"expires_in"`
 }
 
+
 type ClientAuth struct {
-	id		string `json:"id"`
-	secret	string `json:"secret"`
+	Id		string `json:"id"`
+	Secret	string `json:"secret"`
 	Bearer	BearerData
 }
 
-func (auth ClientAuth) FromWhatever() {
-	filed, err := ioutil.ReadFile(secretFile)
+func (auth *ClientAuth) FromWhatever() {
+	data, err := ioutil.ReadFile(secretFile)
 	if err != nil {
 		log.Fatal(err)
 	}
-	json.Unmarshal(filed, auth)
+	json.Unmarshal(data, &auth)
+	log.Print(auth)
 }
 
-/* testing function to print each card in a human way */
-func (card *HearthCard) PrettyPrint() string {
-	var bufout bytes.Buffer
-	var cardform = `
-    Name: %s
-    Type: %d
-    Rarity: %d
-    Set: %d
-    Class: %d
-`
-	bufout.WriteString(fmt.Sprintf(cardform, card.Name, card.TypeId, card.Rarity, card.SetId, card.Class))
-	return bufout.String()
-}
-
-func (db HearthCards) New() {
-	var auth ClientAuth
-	auth.FromWhatever()
-	auth.Login()
-
+func (db *HearthCards) Init(auth ClientAuth) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", urlSearch, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
+	req, _ := http.NewRequest("GET", urlSearch, nil)
 	req.Header.Add(auth.BearerHeader())
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
+	log.Print(string(body))
 	if err != nil {
 		log.Fatal(err)
 	}
-	cardDb.NewFromBytes(body)
-	return cardDb
+	db.NewFromBytes(body)
+	defer resp.Body.Close()
 }
+
 /* new stack o cards from a response body */
-func (cards *HearthCards) NewFromBytes(body []byte) {
-	err := json.Unmarshal(body, &cards)
+func (db *HearthCards) NewFromBytes(body []byte) {
+	err := json.Unmarshal(body, &db)
 	if err != nil {
 		log.Fatal(err)
-	}
-}
-
-/* list them all and print them for testing/debugging */
-func (cards *HearthCards) List() {
-	cardsDb := cards.All
-
-	for _, ele := range(cardsDb) {
-		fmt.Print(ele.PrettyPrint())
 	}
 }
 
@@ -118,7 +93,7 @@ func (auth *ClientAuth) Login() {
 	 */
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", urlOauth, bytes.NewBufferString(data.Encode()))
-	req.SetBasicAuth(auth.id, auth.secret)
+	req.SetBasicAuth(auth.Id, auth.Secret)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
 	req.PostForm = data
 	resp, err := client.Do(req)
@@ -148,6 +123,14 @@ func testWebHandler(writer http.ResponseWriter, req *http.Request) {
 }
 
 func cardsWebHandler(writer http.ResponseWriter, req *http.Request) {
+	auth := ClientAuth{}
+	auth.FromWhatever()
+	log.Print(auth)
+	auth.Login()
+	log.Print(auth)
+
+	db := HearthCards{}
+	db.Init(auth)
 }
 
 func indexWebHandler(writer http.ResponseWriter, req *http.Request) {
