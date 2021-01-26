@@ -119,7 +119,7 @@ func (auth *ClientAuth) Login(id string, secret string) {
 func GetCards() (cardDb HearthCards) {
 	var auth ClientAuth
 
-    auth.Login("df6ff04fb7394721bb4bc62c683c8b37", "fRQnOS4Ksk2xy6voKMjgguw0UMtaYkYI")
+    auth.Login("x", "x")
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", cardsurl, nil)
 	if err != nil {
