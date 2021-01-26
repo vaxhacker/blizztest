@@ -1,0 +1,4 @@
+https://us.api.blizzard.com/hearthstone/metadata?locale=en_US
+https://us.api.blizzard.com/hearthstone/metadata/sets?locale=en_US
+https://us.api.blizzard.com/hearthstone/metadata/classes?locale=en_US
+https://us.api.blizzard.com/hearthstone/metadata/keywords?locale=en_US

@@ -1,0 +1,41 @@
+<html>
+
+<head>
+<style>
+    img.resize {
+        max-width:10%;
+        max-height:10%;
+    }
+</style>
+<script>
+
+</script>
+</head>
+
+<body>
+<table border=5>
+    <tr>
+        <td>card id</td>
+        <td>image</td>
+        <td>name</td>
+        <td>type</td>
+        <td>set</td>
+        <td>rarity</td>
+        <td>class</td>
+        <td>manaCost</td>
+    </tr>
+    {{ range . }}
+        <tr>
+            <td>{{.Id}}</td>
+            <td><img src="{{.Image}}" /></td>
+            <td>{{.Name}}</td>
+            <td>{{.TypeId}}</td>
+            <td>{{.SetId}}</td>
+            <td>{{.Rarity}}</td>
+            <td>{{.Class}}</td>
+            <td>{{.ManaCost}}</td>
+        </tr>
+    {{end}}
+</table>
+</body>
+</html>
