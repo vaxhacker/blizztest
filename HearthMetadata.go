@@ -14,24 +14,24 @@ import (
 const urlHearthClasses = "https://us.api.blizzard.com/hearthstone/metadata/classes?locale=en_US"
 const urlHearthSets = "https://us.api.blizzard.com/hearthstone/metadata/sets?locale=en_US"
 
-type HearthSet struct {
-	Id HearthSetId `json:"id"`
+type HearthMeta struct {
+	Id HearthId `json:"id"`
 	Name string `json:"name"`
 }
 
+type HearthId int
+type HearthClass HearthMeta
+type HearthSet HearthMeta
 type HearthSets []HearthSet
-type HearthSetId int
-type HearthSetDb map[HearthSetId]string
-
-type HearthClass struct {
-	Id HearthClassId `json:"id"`
-	Name string   	 `json:"name"`
-}
 type HearthClasses []HearthClass
-type HearthClassId int
-type HearthClassDb map[HearthClassId]string
+type HearthClassDb map[HearthId]string
+type HearthSetDb map[HearthId]string
 
-func (inv HearthSetDb) Init(auth ClientAuth, cards *HearthCards) {
+/* i want to use the HearthMeta and make a generic function
+   that works on both sets and classes because they share id/name
+   would reduce the repeated code!
+ */
+func (inv HearthSetDb) Init(auth ClientAuth, db HearthCardDb) {
 	raw := HearthSets{}
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", urlHearthSets, nil)
@@ -45,11 +45,11 @@ func (inv HearthSetDb) Init(auth ClientAuth, cards *HearthCards) {
 	for _, ele := range raw {
 		inv[ele.Id] = ele.Name
 	}
-	inv.Enrich(cards)
+	inv.Enrich(db)
 	defer resp.Body.Close()
 }
 
-func (inv HearthClassDb) Init(auth ClientAuth, cards *HearthCards) {
+func (inv HearthClassDb) Init(auth ClientAuth, db HearthCardDb) {
 	raw := HearthClasses{}
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", urlHearthClasses, nil)
@@ -63,20 +63,23 @@ func (inv HearthClassDb) Init(auth ClientAuth, cards *HearthCards) {
 	for _, ele := range raw {
 		inv[ele.Id] = ele.Name
 	}
-	inv.Enrich(cards)
+	inv.Enrich(db)
 	defer resp.Body.Close()
 }
 
-func (inv HearthSetDb) Enrich(db *HearthCards)  {
-	dbptr := db.All
-	for idx, ele := range dbptr {
-		dbptr[idx].FancySet = inv[HearthSetId(ele.SetId)]
+/* these would also be reduced with the HearthMeta
+   type.
+ */
+func (inv HearthSetDb) Enrich(db HearthCardDb)  {
+	for key, ele := range db {
+		ele.FancySet = inv[HearthId(ele.SetId)]
+		db[key] = ele
 	}
 }
 
-func (inv HearthClassDb) Enrich(db *HearthCards)  {
-	dbptr := db.All
-	for idx, ele := range dbptr {
-		dbptr[idx].FancyClass = inv[HearthClassId(ele.Class)]
+func (inv HearthClassDb) Enrich(db HearthCardDb)  {
+	for key, ele := range db {
+		ele.FancyClass = inv[HearthId(ele.Class)]
+		db[key] = ele
 	}
 }

@@ -33,22 +33,23 @@ type HearthCards struct {
 	All			[]HearthCard	`json:"cards"`
 }
 
-func (db HearthCards) AllSorted() []HearthCard {
-	sorted := db.All
-	sort.SliceStable(sorted, func(i, j int) bool { return sorted[i].Id < sorted[j].Id })
+type HearthCardDb map[int]HearthCard
+
+/* Sort the keys of the hash so we can get it in proper order */
+func (db HearthCardDb) AllSorted() []HearthCard {
+	sorted := make([]HearthCard, 0, len(db))
+	keys := make([]int, 0, len(db))
+	for key := range db {
+		keys = append(keys, key)
+	}
+	sort.Ints(keys)
+	for _, key := range keys {
+		sorted = append(sorted, db[key])
+	}
 	return sorted
 }
 
-func (db *HearthCards) ToJson() string {
-	data, err := json.Marshal(db)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return string(data)
-}
-
-func (db *HearthCards) GetAllCards(auth ClientAuth) {
-	outputCards := make([]HearthCard, 0, 10)
+func (db *HearthCardDb) GetAllCards(auth ClientAuth) {
 	client := &http.Client{}
 	for _, ele := range classesToSearch {
 		for i := minMana; i < maxMana+1; i++ {
@@ -60,21 +61,23 @@ func (db *HearthCards) GetAllCards(auth ClientAuth) {
 			body, _ := ioutil.ReadAll(resp.Body) //need to close this.
 			err := json.Unmarshal([]byte(body), shim)
 			if err != nil {
-				log.Print("sad")
 				log.Fatal(err)
 			}
 			for _, ele :=  range shim.All {
-				outputCards = append(outputCards, ele)
+				(*db)[ele.Id] = ele
 			}
 		}
 	}
-	db.All = outputCards
 }
 
-func (db *HearthCards) Init(auth ClientAuth) {
-	db.GetAllCards(auth)
+func InitCardDb(auth ClientAuth) HearthCardDb {
+	db := HearthCardDb{}
 	classes := HearthClassDb{}
 	sets := HearthSetDb{}
+
+	db.GetAllCards(auth)
 	classes.Init(auth, db)
 	sets.Init(auth, db)
+
+	return db
 }

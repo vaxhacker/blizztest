@@ -14,11 +14,11 @@ const urlOauth = "https://us.battle.net/oauth/token"
 func testWebHandler(writer http.ResponseWriter, req *http.Request) {
 }
 
-func authAndFetchDb() (db HearthCards) {
+func authAndFetchDb() HearthCardDb {
 	auth := ClientAuth{}
 	auth.FromWhatever() // stub for some type of secrets storage
 	auth.Login()        // get bearer token
-	db.Init(auth)       // initialize datastructures of cards
+	db := InitCardDb(auth)       // initialize datastructures of cards
 	log.Print(db)
 	return db
 }
@@ -26,7 +26,7 @@ func authAndFetchDb() (db HearthCards) {
 func indexWebHandler(writer http.ResponseWriter, req *http.Request) {
 	db := authAndFetchDb()
 	tmpl := template.Must(template.ParseFiles("public_html/hearthstone.html"))
-	tmpl.Execute(writer, []HearthCard(db.AllSorted()))
+	tmpl.Execute(writer, db.AllSorted())
 }
 
 func main() {
