@@ -2,9 +2,14 @@
 
 <head>
 <style>
-    img.resize {
-        max-width:10%;
-        max-height:10%;
+    img {
+        max-width:20%;
+        height:auto;
+    }
+    .centerthis {
+        margin-left: auto;
+        margin-right: auto;
+        width: 120em
     }
 </style>
 <script>
@@ -13,10 +18,13 @@
 </head>
 
 <body>
+<h1>Hearthstone Card Listings</h1>
+<hr/>
+<div class="centerthis">
 <table border=5>
     <tr>
         <td>card id</td>
-        <td>image</td>
+        <td width="20%" height="90%">image</td>
         <td>name</td>
         <td>type</td>
         <td>set</td>
@@ -24,18 +32,21 @@
         <td>class</td>
         <td>manaCost</td>
     </tr>
-    {{ range . }}
+    {{range $i, $val := .}}
+        {{if lt $i 10}}
         <tr>
-            <td>{{.Id}}</td>
-            <td><img src="{{.Image}}" /></td>
-            <td>{{.Name}}</td>
-            <td>{{.TypeId}}</td>
-            <td>{{.SetId}}</td>
-            <td>{{.Rarity}}</td>
-            <td>{{.Class}}</td>
-            <td>{{.ManaCost}}</td>
+            <td>{{$val.Id}}</td>
+            <td><img src="{{$val.Image}}" /></td>
+            <td>{{$val.Name}}</td>
+            <td>{{$val.TypeId}}</td>
+            <td>{{$val.FancySet}}</td>
+            <td>{{$val.Rarity}}</td>
+            <td>{{$val.FancyClass}}</td>
+            <td>{{$val.ManaCost}}</td>
         </tr>
+            {{end}}
     {{end}}
 </table>
+</div>
 </body>
 </html>

@@ -2,11 +2,17 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"sort"
 )
+
+const urlCardSearch = "https://us.api.blizzard.com/hearthstone/cards/?locale=en-US?class=%s&manaCost=%d"
+const minMana = 7
+const maxMana = 10
+var classesToSearch = []string { "warlock", "druid" }
 
 type HearthCard struct {
 	Id 			int	`json:"id"`
@@ -19,6 +25,7 @@ type HearthCard struct {
 	FancySet    string
 	Rarity		int `json:"rarityId"`
 	Class 		int `json:"classId"`
+	FancyClass  string
 	ManaCost    int `json:"manaCost"`
 }
 
@@ -40,23 +47,34 @@ func (db *HearthCards) ToJson() string {
 	return string(data)
 }
 
-func (db *HearthCards) Init(auth ClientAuth) {
+func (db *HearthCards) GetAllCards(auth ClientAuth) {
+	outputCards := make([]HearthCard, 0, 10)
 	client := &http.Client{}
-	req, _ := http.NewRequest("GET", urlSearch, nil)
-	req.Header.Add(auth.BearerHeader())
-	resp, err := client.Do(req)
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
+	for _, ele := range classesToSearch {
+		for i := minMana; i < maxMana+1; i++ {
+			shim := new(HearthCards)
+			search := fmt.Sprintf(urlCardSearch, ele, i)
+			req, _ := http.NewRequest("GET", search, nil)
+			req.Header.Add(auth.BearerHeader())
+			resp, _ := client.Do(req)
+			body, _ := ioutil.ReadAll(resp.Body) //need to close this.
+			err := json.Unmarshal([]byte(body), shim)
+			if err != nil {
+				log.Print("sad")
+				log.Fatal(err)
+			}
+			for _, ele :=  range shim.All {
+				outputCards = append(outputCards, ele)
+			}
+		}
 	}
-	db.NewFromBytes(body)
-	defer resp.Body.Close()
+	db.All = outputCards
 }
 
-/* new stack o cards from a response body */
-func (db *HearthCards) NewFromBytes(body []byte) {
-	err := json.Unmarshal(body, &db)
-	if err != nil {
-		log.Fatal(err)
-	}
+func (db *HearthCards) Init(auth ClientAuth) {
+	db.GetAllCards(auth)
+	classes := HearthClassDb{}
+	sets := HearthSetDb{}
+	classes.Init(auth, db)
+	sets.Init(auth, db)
 }
