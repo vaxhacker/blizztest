@@ -9,6 +9,9 @@ import (
 	"net/url"
 )
 
+const urlOauth = "https://us.battle.net/oauth/token"
+const urlSearch = "https://us.api.blizzard.com/hearthstone/cards/?locale=en-US?mana=%d&class=%s"
+
 type HearthCard struct {
 	Id 			int	`json:"id"`
 	Image		string `json:"image"`
@@ -23,20 +26,25 @@ type HearthCards struct {
 	All			[]HearthCard	`json:"cards"`
 }
 
-type BearRec struct {
+type BearerData struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
 	ExpiresIn   int    `json:"expires_in"`
 }
 
 type ClientAuth struct {
-	id		string
-	secret	string
-	Bearer	BearRec
+	id		string `json:"id"`
+	secret	string `json:"secret"`
+	Bearer	BearerData
 }
 
-type Header map[string][]string
-
+func (auth ClientAuth) FromFile(secretfile string) {
+	filed, err := ioutil.ReadFile(secretfile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	json.Unmarshal(filed, auth)
+}
 
 /* testing function to print each card in a human way */
 func (card *HearthCard) PrettyPrint() string {
@@ -69,19 +77,13 @@ func (cards *HearthCards) List() {
 	}
 }
 
-/* returns all cards that met our search pattern */
-func (cards *HearthCards) ToJsonForWeb(writer http.ResponseWriter, r *http.Request) {
-}
-
 /* return a bearer header to be used with httpclient */
 func (auth *ClientAuth) BearerHeader() (string, string) {
 	return "Authorization", fmt.Sprintf("Bearer %s", auth.Bearer.AccessToken)
 }
 
 /* create a new clientauth struct takes id and secret */
-func (auth *ClientAuth) Login(id string, secret string) {
-	auth.id = id
-	auth.secret = secret
+func (auth *ClientAuth) Login() {
 	data := url.Values{}
 	data.Add("grant_type","client_credentials")
 
@@ -90,7 +92,7 @@ func (auth *ClientAuth) Login(id string, secret string) {
 	   set basic auth on the request object.
 	 */
 	client := &http.Client{}
-	req, _ := http.NewRequest("POST", authurl, bytes.NewBufferString(data.Encode()))
+	req, _ := http.NewRequest("POST", urlOauth, bytes.NewBufferString(data.Encode()))
 	req.SetBasicAuth(auth.id, auth.secret)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
 	req.PostForm = data
@@ -105,9 +107,9 @@ func (auth *ClientAuth) Login(id string, secret string) {
 		log.Fatal(err)
 	}
 
-	/* deserialize the json and store the bearer in BearRec struct */
-	bearer_ticket := BearRec{}
-	err = json.Unmarshal(body, &bearer_ticket)
+	/* deserialize the json and store the bearer in BearerData struct */
+	bearer := BearerData{}
+	err = json.Unmarshal(body, &bearer)
 	if err != nil {
 		log.Fatalf("unable to parse value: %q, error: %s", string(body), err.Error())
 	}
@@ -117,9 +119,7 @@ func (auth *ClientAuth) Login(id string, secret string) {
 }
 
 func GetCards() (cardDb HearthCards) {
-	var auth ClientAuth
-
-    auth.Login("x", "x")
+    auth.Login()
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", cardsurl, nil)
 	if err != nil {
@@ -139,18 +139,20 @@ func GetCards() (cardDb HearthCards) {
 	return cardDb
 }
 
-func GetConfigs(config string) {
-
-}
 /* test handler for our webapp good for lb health */
 func testWebHandler(writer http.ResponseWriter, r *http.Request) {
 }
 
-func main() {
-	cardDb := GetCards()
-	blizzConfig := GetConfigs("config.yaml")
+func cardsWebHandler(writer http.ResponseWriter, r *http.Request) {
+}
 
+func indexWebHandler(writer http.ResponseWriter, r *http.Request) {
+}
+
+func main() {
 	http.HandleFunc("/test", testWebHandler)
-	http.HandleFunc("/cards.json", cardDb.ToJsonForWeb)
+	http.HandleFunc("/cards.json", cardsWebHandler)
+	http.HandleFunc("/index.html", indexWebHandler)
+
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
